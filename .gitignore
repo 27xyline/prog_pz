@@ -38,6 +38,9 @@
 *.exe
 *.out
 *.app
+/main
+/main_asan
+/dynamic_array
 
 # Build directories
 build/
@@ -67,3 +70,4 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+.DS_Store
