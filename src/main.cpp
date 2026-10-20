@@ -1,25 +1,23 @@
 #include "DynamicArray.h"
 
 #include <iostream>
+#include <new>
+#include <stdexcept>
 
 using namespace std;
 
 int main() {
     DynamicArray numbers(3);
-    if (!numbers.set(0, 10) or !numbers.set(1, -4) or !numbers.set(2, 7)) {
-        cerr << "Could not initialize numbers\n";
-        return 1;
-    }
+    numbers.set(0, 10);
+    numbers.set(1, -4);
+    numbers.set(2, 7);
 
     cout << "numbers: ";
     numbers.print(cout);
     cout << '\n';
 
     DynamicArray copied(numbers);
-    if (!copied.set(0, 20)) {
-        cerr << "Could not change the copy\n";
-        return 1;
-    }
+    copied.set(0, 20);
     cout << "numbers after changing the copy: ";
     numbers.print(cout);
     cout << '\n';
@@ -27,42 +25,81 @@ int main() {
     copied.print(cout);
     cout << '\n';
 
-    if (!numbers.push_back(5)) {
-        cerr << "Could not append the value\n";
-        return 1;
-    }
+    numbers.push_back(5);
     cout << "after push_back: ";
     numbers.print(cout);
     cout << '\n';
 
     DynamicArray shorter(2);
-    if (!shorter.set(0, 3) or !shorter.set(1, 2)) {
-        cerr << "Could not initialize shorter\n";
-        return 1;
-    }
+    shorter.set(0, 3);
+    shorter.set(1, 2);
 
-    if (!numbers.add(shorter)) {
-        cerr << "Addition result is outside [-100, 100]\n";
-        return 1;
-    }
+    numbers.add(shorter);
     cout << "after add: ";
     numbers.print(cout);
     cout << '\n';
 
-    if (!numbers.subtract(shorter)) {
-        cerr << "Subtraction result is outside [-100, 100]\n";
-        return 1;
-    }
+    numbers.subtract(shorter);
     cout << "after subtract: ";
     numbers.print(cout);
     cout << '\n';
 
-    int element = 0;
-    if (numbers.get(1, element)) {
-        cout << "element at index 1: " << element << '\n';
-    } else {
-        cerr << "Index 1 is outside the array\n";
-        return 1;
-    }
+    cout << "element at index 1: " << numbers.get(1) << '\n';
     cout << "size: " << numbers.size() << '\n';
+
+    try {
+        numbers.get(numbers.size());
+        cerr << "ERROR: get did not throw out_of_range\n";
+        return 1;
+    } catch (const out_of_range& error) {
+        cout << "Caught out_of_range: " << error.what() << '\n';
+    }
+
+    try {
+        numbers.set(numbers.size(), 0);
+        cerr << "ERROR: set did not throw out_of_range\n";
+        return 1;
+    } catch (const out_of_range& error) {
+        cout << "Caught out_of_range in set: " << error.what() << '\n';
+    }
+
+    try {
+        numbers.set(0, 101);
+        cerr << "ERROR: set did not throw invalid_argument\n";
+        return 1;
+    } catch (const invalid_argument& error) {
+        cout << "Caught invalid_argument for an invalid value: "
+             << error.what() << '\n';
+    }
+
+    try {
+        numbers.push_back(101);
+        cerr << "ERROR: push_back did not throw invalid_argument\n";
+        return 1;
+    } catch (const invalid_argument& error) {
+        cout << "Caught invalid_argument in push_back: "
+             << error.what() << '\n';
+    }
+
+    DynamicArray maximum(1);
+    DynamicArray increment(1);
+    maximum.set(0, 100);
+    increment.set(0, 1);
+    try {
+        maximum.add(increment);
+        cerr << "ERROR: add did not throw invalid_argument\n";
+        return 1;
+    } catch (const invalid_argument& error) {
+        cout << "Caught invalid_argument for an invalid sum: "
+             << error.what() << '\n';
+        cout << "maximum after rejected addition: ";
+        maximum.print(cout);
+        cout << '\n';
+    }
+
+    try {
+        throw bad_alloc();
+    } catch (const bad_alloc& error) {
+        cout << "Caught simulated bad_alloc: " << error.what() << '\n';
+    }
 }

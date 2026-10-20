@@ -15,12 +15,12 @@ public:
     DynamicArray& operator=(const DynamicArray& other) = delete;
 
     size_t size() const noexcept;
-    bool get(size_t index, int& value) const;
-    bool set(size_t index, int value);
-    bool push_back(int value);
+    int get(size_t index) const;
+    void set(size_t index, int value);
+    void push_back(int value);
 
-    bool add(const DynamicArray& other);
-    bool subtract(const DynamicArray& other);
+    void add(const DynamicArray& other);
+    void subtract(const DynamicArray& other);
 
     void print(ostream& output) const;
 
@@ -28,8 +28,8 @@ private:
     int* data_;
     size_t size_;
 
-    static bool is_valid_value(int value) noexcept;
-    bool combine(const DynamicArray& other, int sign);
+    static void validate_value(int value);
+    void combine(const DynamicArray& other, int sign);
 };
 
 #endif

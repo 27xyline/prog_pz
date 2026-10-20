@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <ostream>
+#include <stdexcept>
 
 using namespace std;
 
@@ -24,26 +25,23 @@ size_t DynamicArray::size() const noexcept {
     return size_;
 }
 
-bool DynamicArray::get(size_t index, int& value) const {
+int DynamicArray::get(size_t index) const {
     if (index >= size_) {
-        return false;
+        throw out_of_range("DynamicArray index is out of range");
     }
-    value = data_[index];
-    return true;
+    return data_[index];
 }
 
-bool DynamicArray::set(size_t index, int value) {
-    if (index >= size_ or !is_valid_value(value)) {
-        return false;
+void DynamicArray::set(size_t index, int value) {
+    if (index >= size_) {
+        throw out_of_range("DynamicArray index is out of range");
     }
+    validate_value(value);
     data_[index] = value;
-    return true;
 }
 
-bool DynamicArray::push_back(int value) {
-    if (!is_valid_value(value)) {
-        return false;
-    }
+void DynamicArray::push_back(int value) {
+    validate_value(value);
 
     int* expanded = new int[size_ + 1];
     if (size_ != 0) {
@@ -54,15 +52,14 @@ bool DynamicArray::push_back(int value) {
     delete[] data_;
     data_ = expanded;
     ++size_;
-    return true;
 }
 
-bool DynamicArray::add(const DynamicArray& other) {
-    return combine(other, 1);
+void DynamicArray::add(const DynamicArray& other) {
+    combine(other, 1);
 }
 
-bool DynamicArray::subtract(const DynamicArray& other) {
-    return combine(other, -1);
+void DynamicArray::subtract(const DynamicArray& other) {
+    combine(other, -1);
 }
 
 void DynamicArray::print(ostream& output) const {
@@ -76,24 +73,23 @@ void DynamicArray::print(ostream& output) const {
     output << ']';
 }
 
-bool DynamicArray::is_valid_value(int value) noexcept {
-    return value >= -100 and value <= 100;
+void DynamicArray::validate_value(int value) {
+    if (value < -100 or value > 100) {
+        throw invalid_argument("DynamicArray values must be in [-100, 100]");
+    }
 }
 
-bool DynamicArray::combine(const DynamicArray& other, int sign) {
+void DynamicArray::combine(const DynamicArray& other, int sign) {
     const size_t shared_size = min(size_, other.size_);
 
     for (size_t i = 0; i < size_; ++i) {
         const int right = i < shared_size ? other.data_[i] : 0;
         const int result = data_[i] + sign * right;
-        if (!is_valid_value(result)) {
-            return false;
-        }
+        validate_value(result);
     }
 
     for (size_t i = 0; i < size_; ++i) {
         const int right = i < shared_size ? other.data_[i] : 0;
         data_[i] += sign * right;
     }
-    return true;
 }
