@@ -33,6 +33,59 @@ int main() {
     words.push_back("!");
     cout << "String array: " << words << '\n';
 
+    DynamicArray<int> operators_array(3);
+    operators_array[0] = 10;
+    operators_array[1] = -4;
+    operators_array[2] = 7;
+
+    DynamicArray<int> operators_other(2);
+    operators_other[0] = 3;
+    operators_other[1] = 2;
+
+    cout << "operator[] read: " << static_cast<int>(operators_array[1]) << '\n';
+    DynamicArray<int> operators_copy(operators_array);
+    cout << "equal to its copy: " << (operators_array == operators_copy) << '\n';
+    cout << "different from shorter array: "
+         << (operators_array != operators_other) << '\n';
+
+    operators_array += operators_other;
+    cout << "after array +=: " << operators_array << '\n';
+    operators_array -= operators_other;
+    cout << "after array -=: " << operators_array << '\n';
+
+    operators_array += 2;
+    cout << "after scalar +=: " << operators_array << '\n';
+    operators_array -= 2;
+    cout << "after scalar -=: " << operators_array << '\n';
+
+    for (auto& value : operators_array) {
+        value += 1;
+    }
+    cout << "after mutable range-for: " << operators_array << '\n';
+
+    const DynamicArray<int>& read_only_array = operators_array;
+    cout << "const range-for:";
+    for (const auto& value : read_only_array) {
+        cout << ' ' << value;
+    }
+    cout << '\n';
+
+    try {
+        operators_array[operators_array.size()] = 0;
+        cerr << "ERROR: operator[] did not throw out_of_range\n";
+        return 1;
+    } catch (const out_of_range& error) {
+        cout << "Caught out_of_range from operator[]: " << error.what() << '\n';
+    }
+
+    try {
+        operators_array[0] = 101;
+        cerr << "ERROR: operator[] did not validate the value\n";
+        return 1;
+    } catch (const invalid_argument& error) {
+        cout << "Caught invalid_argument from operator[]: " << error.what() << '\n';
+    }
+
     try {
         words.distance_to(words);
         cerr << "ERROR: distance for strings did not throw bad_typeid\n";
