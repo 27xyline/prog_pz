@@ -15,6 +15,29 @@ using namespace std;
 template <typename T = int>
 class DynamicArray {
 public:
+    class ElementProxy {
+    public:
+        ElementProxy(DynamicArray& array, size_t index)
+            : array_(array), index_(index) {}
+
+        ElementProxy& operator=(const T& value) {
+            array_.set(index_, value);
+            return *this;
+        }
+
+        ElementProxy& operator=(const ElementProxy& other) {
+            return *this = static_cast<T>(other);
+        }
+
+        operator T() const {
+            return array_.get(index_);
+        }
+
+    private:
+        DynamicArray& array_;
+        size_t index_;
+    };
+
     explicit DynamicArray(size_t size)
         : data_(size == 0 ? nullptr : new T[size]()), size_(size) {}
 
@@ -78,6 +101,72 @@ public:
         combine(other, -1);
     }
 
+    ElementProxy operator[](size_t index) {
+        if (index >= size_) {
+            throw out_of_range("DynamicArray index is out of range");
+        }
+        return ElementProxy(*this, index);
+    }
+
+    const T& operator[](size_t index) const {
+        if (index >= size_) {
+            throw out_of_range("DynamicArray index is out of range");
+        }
+        return data_[index];
+    }
+
+    bool operator==(const DynamicArray& other) const {
+        if (size_ != other.size_) {
+            return false;
+        }
+        for (size_t i = 0; i < size_; ++i) {
+            if (data_[i] != other.data_[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool operator!=(const DynamicArray& other) const {
+        return !(*this == other);
+    }
+
+    DynamicArray& operator+=(const DynamicArray& other) {
+        combine(other, 1);
+        return *this;
+    }
+
+    DynamicArray& operator-=(const DynamicArray& other) {
+        combine(other, -1);
+        return *this;
+    }
+
+    DynamicArray& operator+=(const T& scalar) {
+        combine_scalar(scalar, 1);
+        return *this;
+    }
+
+    DynamicArray& operator-=(const T& scalar) {
+        combine_scalar(scalar, -1);
+        return *this;
+    }
+
+    T* begin() noexcept {
+        return data_;
+    }
+
+    const T* begin() const noexcept {
+        return data_;
+    }
+
+    T* end() noexcept {
+        return size_ == 0 ? data_ : data_ + size_;
+    }
+
+    const T* end() const noexcept {
+        return size_ == 0 ? data_ : data_ + size_;
+    }
+
     void print(ostream& output) const {
         output << '[';
         for (size_t i = 0; i < size_; ++i) {
@@ -123,6 +212,14 @@ private:
         }
     }
 
+    static void validate_arithmetic_result(long double result) {
+        if constexpr (is_integral_v<T>) {
+            if (result < -100 or result > 100) {
+                throw invalid_argument("Integer values must be in [-100, 100]");
+            }
+        }
+    }
+
     void combine(const DynamicArray& other, int sign) {
         if constexpr (!is_arithmetic_v<T>) {
             throw bad_typeid();
@@ -131,8 +228,10 @@ private:
 
             for (size_t i = 0; i < size_; ++i) {
                 const T right = i < shared_size ? other.data_[i] : T{};
-                const T result = sign == 1 ? data_[i] + right : data_[i] - right;
-                validate_value(result);
+                const long double left_value = static_cast<long double>(data_[i]);
+                const long double right_value = static_cast<long double>(right);
+                const long double result = left_value + sign * right_value;
+                validate_arithmetic_result(result);
             }
 
             for (size_t i = 0; i < size_; ++i) {
@@ -142,6 +241,25 @@ private:
                 } else {
                     data_[i] -= right;
                 }
+            }
+        }
+    }
+
+    void combine_scalar(const T& scalar, int sign) {
+        if constexpr (!is_arithmetic_v<T>) {
+            throw bad_typeid();
+        } else {
+            const long double scalar_value = static_cast<long double>(scalar);
+            for (size_t i = 0; i < size_; ++i) {
+                const long double current_value = static_cast<long double>(data_[i]);
+                const long double result = current_value + sign * scalar_value;
+                validate_arithmetic_result(result);
+            }
+
+            for (size_t i = 0; i < size_; ++i) {
+                const long double current_value = static_cast<long double>(data_[i]);
+                const long double result = current_value + sign * scalar_value;
+                data_[i] = static_cast<T>(result);
             }
         }
     }
