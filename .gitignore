@@ -71,3 +71,6 @@ vcpkg_installed/
 Testing/
 .cache/
 .DS_Store
+
+# Локальное задание «Структуры», не добавлять в Git
+/structures/
