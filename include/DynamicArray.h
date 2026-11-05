@@ -54,11 +54,43 @@ public:
         }
     }
 
+    DynamicArray(DynamicArray&& other) noexcept
+        : data_(other.data_), size_(other.size_) {
+        other.data_ = nullptr;
+        other.size_ = 0;
+    }
+
     ~DynamicArray() {
         delete[] data_;
     }
 
-    DynamicArray& operator=(const DynamicArray& other) = delete;
+    DynamicArray& operator=(const DynamicArray& other) {
+        if (this == &other) {
+            return *this;
+        }
+
+        unique_ptr<T[]> replacement(
+            other.size_ == 0 ? nullptr : new T[other.size_]);
+        if (other.size_ != 0) {
+            copy(other.data_, other.data_ + other.size_, replacement.get());
+        }
+
+        delete[] data_;
+        data_ = replacement.release();
+        size_ = other.size_;
+        return *this;
+    }
+
+    DynamicArray& operator=(DynamicArray&& other) noexcept {
+        if (this != &other) {
+            delete[] data_;
+            data_ = other.data_;
+            size_ = other.size_;
+            other.data_ = nullptr;
+            other.size_ = 0;
+        }
+        return *this;
+    }
 
     size_t size() const noexcept {
         return size_;

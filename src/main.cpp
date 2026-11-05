@@ -4,8 +4,13 @@
 #include <new>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 using namespace std;
+
+void print_by_value(DynamicArray<int> values) {
+    cout << "Function received: " << values << '\n';
+}
 
 int main() {
     DynamicArray<int> first(3);
@@ -126,4 +131,45 @@ int main() {
     } catch (const bad_alloc& error) {
         cout << "Caught simulated bad_alloc: " << error.what() << '\n';
     }
+
+    DynamicArray<int> copy_source(3);
+    copy_source.set(0, 8);
+    copy_source.set(1, 9);
+    copy_source.set(2, 10);
+
+    DynamicArray<int> copy_assigned(1);
+    copy_assigned = copy_source;
+    cout << "After copy assignment: " << copy_assigned << '\n';
+
+    DynamicArray<int>& same_copy_object = copy_assigned;
+    copy_assigned = same_copy_object;
+    cout << "After self-copy assignment: " << copy_assigned << '\n';
+
+    DynamicArray<int> move_constructor_source(2);
+    move_constructor_source.set(0, 20);
+    move_constructor_source.set(1, 30);
+    DynamicArray<int> move_constructed(std::move(move_constructor_source));
+    cout << "Move constructor destination: " << move_constructed << '\n';
+    cout << "Move constructor source size: " << move_constructor_source.size() << '\n';
+
+    DynamicArray<int> move_assignment_source(2);
+    move_assignment_source.set(0, 40);
+    move_assignment_source.set(1, 50);
+    DynamicArray<int> move_assigned(1);
+    move_assigned.set(0, -1);
+    move_assigned = std::move(move_assignment_source);
+    cout << "Move assignment destination: " << move_assigned << '\n';
+    cout << "Move assignment source size: " << move_assignment_source.size() << '\n';
+
+    DynamicArray<int>& same_move_object = move_assigned;
+    move_assigned = std::move(same_move_object);
+    cout << "After self-move assignment: " << move_assigned << '\n';
+
+    cout << "Passing an lvalue by value (copy):\n";
+    print_by_value(copy_source);
+    cout << "Original after copy: " << copy_source << '\n';
+
+    cout << "Passing an rvalue by value (move):\n";
+    print_by_value(std::move(copy_source));
+    cout << "Source size after move: " << copy_source.size() << '\n';
 }
